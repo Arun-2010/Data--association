@@ -16,9 +16,9 @@ app.get('/',(req,res)=>{
     res.render("index");
 })
 
-app.get('/profile',isloggedIn,(req,res)=>{
-    console.log(req.user);
-    res.render("profile");
+app.get('/profile',isloggedIn, async (req,res)=>{
+    let userData=await userSchema.findOne({email:req.user.email});
+    res.render("profile",{userData});
 })
 
 app.get('/login',(req,res)=>{
@@ -63,7 +63,8 @@ app.post('/login',async (req,res)=>{
         if(result){
          let token= jwt.sign({id:user._id,email:email},'secret')
            res.cookie('token',token);
-              res.send("Login Successful");
+              res.redirect('/profile');
+
     }
             else res.send("Invalid Credentials");
     })
@@ -71,7 +72,7 @@ app.post('/login',async (req,res)=>{
 
 
 function isloggedIn(req,res,next){
-    if(req.cookies.token=="") res.send("Login first");
+    if(req.cookies.token=="") res.redirect('/login');
     else{
         let data=jwt.verify(req.cookies.token,'secret')
         req.user=data;
